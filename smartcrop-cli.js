@@ -54,17 +54,7 @@ var gm = require('gm').subClass({ imageMagick: true });
 var smartcrop = require('smartcrop-gm');
 var _ = require('underscore');
 
-var cv;
-
-if (argv.faceDetection) {
-  try {
-    cv = require('opencv');
-  } catch (e) {
-    console.error(e);
-    console.error('skipping faceDetection');
-    argv.faceDetection = false;
-  }
-}
+var cv = require('opencv4nodejs');
 
 var options = _.extend({}, argv.config, _.omit(argv, 'config', 'quality', 'faceDetection'));
 
@@ -94,22 +84,24 @@ function resize(result) {
 function faceDetect(input, options) {
   return new Promise(function(resolve, reject) {
     if (!argv.faceDetection) return resolve(false);
-    cv.readImage(input, function(err, image) {
-      if (err) return reject(err);
-      image.detectObject(cv.FACE_CASCADE, {}, function(err, faces) {
-        if (err) return reject(err);
-        options.boost = faces.map(function(face) {
-          return {
-            x: face.x,
-            y: face.y,
-            width: face.width,
-            height: face.height,
-            weight: 1.0
-          };
-        });
-        resolve(true);
-      });
+
+    const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_DEFAULT);
+    var img = cv.imread(input);
+
+    var grayImg = img.bgrToGray();
+    var result = classifier.detectMultiScale(grayImg, 1.2, 5);
+
+    options.boost = result.objects.map(function(rect) {
+      return {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        weight: 1.0
+      };
     });
+
+    resolve(true);
   });
 }
 
