@@ -25,9 +25,7 @@
     "yargs": "~1.2.1"
   },
   "opencv4nodejs": {
-    "disableAutoBuild": 1,
-    "opencvIncludeDir": "/usr/include/opencv4",
-    "opencvLibDir": "/usr/lib/x86_64-linux-gnu"
+    "disableAutoBuild": 1
   },
   "devDependencies": {
     "eslint": "^4.19.1",
